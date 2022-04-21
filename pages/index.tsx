@@ -1,109 +1,108 @@
 import type { NextPage } from "next";
-import Head from "next/head";
-import Image from "next/image";
 import { useState } from "react";
 import { Field, Form } from "react-final-form";
-import styles from "../styles/Home.module.css";
+import {
+  formatCreditCardNumber,
+  formatExpirationDate,
+} from "../handleForm/format/card";
+import { validationSchema } from "../handleForm/validate/validCard";
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const submit = async (values) => {
+const onSubmit = async (values: any) => {
   await sleep(100);
   alert(JSON.stringify(values));
 };
 
+const test = validationSchema;
 
-
-const required = (value) => (value ? undefined : "Required");
+console.log(test.isValid({
+  eamil: 'sdf',
+  cardNumber : '12312',
+  cardExpiration: '123'
+}));
 
 const Home: NextPage = () => {
-  const [email, setEmail] = useState("");
 
-
-  console.log(email);
+  const validForm = async(values:any) => {
+    const response = await validationSchema.isValid(values)
+    console.log(response)
+    return response
+  }
   return (
     <div className="p-12 px-60">
       <Form
-        onSubmit={submit}
-        render={({ handleSubmit, values }) => (
-          <form className="flex flex-col " onSubmit={handleSubmit}>
-            <Field name="email" validate={required}>
-              {({ input, meta }) => (
-                <div className="w-full">
-                  <label className="text-xl">email</label>
-                  <input
-                    {...input}
-                    type="text"
-                    
-                    className="w-full border p-3"
-                    
-                  />
-                  {meta.error && meta.touched && <span>{meta.error}</span>}
-                </div>
-              )}
-            </Field>
-            <div>
-              <label>password</label>
-              <Field
-                name="password"
-                component="input"
-                type="text"
-                placeholder="Password"
-                className="border p-3 my-3 w-full"
-              />
-            </div>
-            {/* <div className='py-5'>
-              <label>Employed</label>
-              <Field name="em" component="input" type="checkbox" className='w-10 ' />
-            </div>
-            <div>
-            <label>Toppings</label>
-            <Field name="toppings" component="select" className='border ml-2' multiple>
-              <option value="chicken">🐓 Chicken</option>
-              <option value="ham">🐷 Ham</option>
-              <option value="mushrooms">🍄 Mushrooms</option>
-              <option value="cheese">🧀 Cheese</option>
-              <option value="tuna">🐟 Tuna</option>
-              <option value="pineapple">🍍 Pineapple</option>
-            </Field>
-          </div>
-            <div >
-              <label>Best Stooge</label>
-              <div className='mt-1'>
-                <label>
-                  <Field
-                    name="stooge"
-                    component="input"
-                    type="radio"
-                    value="larry"
-                  />{" "}
-                  Larry
-                </label>
-                <label>
-                  <Field
-                    name="stooge"
-                    component="input"
-                    type="radio"
-                    value="moe"
-                  />{" "}
-                  Moe
-                </label>
-                <label>
-                  <Field
-                    name="stooge"
-                    component="input"
-                    type="radio"
-                    value="curly"
-                  />{" "}
-                  Curly
-                </label>
+        onSubmit={onSubmit}
+        validate={(values) => validForm(values)}
+        render={({
+          handleSubmit,
+          form,
+          submitting,
+          pristine,
+          values,
+          active,
+        }) => {
+          return (
+            <form onSubmit={handleSubmit}>
+              <div className="w-full">
+                <Field
+                  name="cardNumber"
+                  component="input"
+                  type="text"
+                  pattern="[\d| ]{16,22}"
+                  placeholder="Card Number"
+                  className="w-full p-3 border"
+                  format={formatCreditCardNumber}
+                />
               </div>
-            </div> */}
-            <button type="submit" className="border p-3 mt-5 w-60 self-center">
-              login
-            </button>
-          </form>
-        )}
+              <div>
+                <Field
+                  name="email"
+                  component="input"
+                  type="text"
+                  placeholder="email"
+                  className="w-full p-3 border"
+                />
+              </div>
+              <Field
+                name="cardExpiration"
+                pattern="\d\d/\d\d"
+                format={formatExpirationDate}
+              >
+                {({ input, meta }) => (
+                  <div>
+                    <label>expiry</label>
+                    <input
+                      {...input}
+                      type="text"
+                      placeholder="asdf"
+                      className="w-full border p-3"
+                    />
+                    {meta.error && meta.touched && <span>{meta.error}</span>}
+                  </div>
+                )}
+              </Field>
+
+              <div className="buttons">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="p-3 bg-black text-stone-50"
+                >
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={form.reset}
+                  disabled={submitting || pristine}
+                >
+                  Reset
+                </button>
+              </div>
+              <h2>Values</h2>
+            </form>
+          );
+        }}
       />
     </div>
   );
